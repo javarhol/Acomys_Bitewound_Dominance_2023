@@ -1,0 +1,115 @@
+---
+title: "6. ind and grp graphs"
+author: "Justin Varholick"
+date: "2023-06-05"
+output: html_document
+---
+
+##open and run markdown files: "4. Differences ind dom bhv" and "5. Differences grp dom bhv"
+
+##this is a copy+paste of the graphs from those files, plus minor adjustments for publication
+
+#Sex graph (YMP vs YFP)
+```{r}
+sexind <- ggplot(ag_sexes, aes(Behavior, TotalFrequency, fill=Trt))+
+  stat_summary(mapping=aes(Behavior, TotalFrequency, fill=Trt), geom="col", fun="mean", color="black", position=position_dodge2(width=0.90))+
+  stat_summary(mapping=aes(Behavior, TotalFrequency, group=Trt), geom="errorbar", fun.data="mean_se", color="black", size=0.5, position=position_dodge2(width=0.90))+
+  scale_y_continuous(expand=c(0,0))+
+  scale_color_npg()+
+  scale_fill_npg()+
+  ylab("Total freq. per animal \nduring dom observation") + xlab("")+
+  labs(fill="Housing \nCondition")+
+  theme_cowplot()+
+  theme(legend.position = "right")
+
+sexgrp <- ggplot(grp_sexes, aes(Behavior, prop_cage, color=Trt, fill=Trt))+
+  stat_summary(mapping=aes(Behavior, prop_cage, fill=Trt), geom="col", fun="mean", color="black", position=position_dodge2(width=0.90))+
+  stat_summary(mapping=aes(Behavior, prop_cage, group=Trt), geom="errorbar", fun.data="mean_se", color="black", size=0.5, position=position_dodge2(width=0.90))+
+  scale_y_continuous(expand=c(0,0), limits=c(0,1))+
+  scale_color_npg()+
+  scale_fill_npg()+
+  ylab("Percent of time observed \nduring dark cycle") + xlab("")+
+  theme_cowplot()+
+  theme(legend.position = "right")
+
+sexdiff <- plot_grid(
+  sexind+guides(x=guide_axis(angle=45)), sexgrp+guides(x=guide_axis(angle=45)),
+  labels="AUTO", label_y=c(1,1.1), ncol=1, align="v"
+)
+
+sexdiff
+```
+```{r}
+ggsave("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Figures/Fig3_sexdiff.png", sexdiff, units="in", width = 6.5, height = 6.5, device='png', dpi=300)
+```
+
+
+#Group size graph (YMT vs YMP)
+```{r}
+indmales <- ggplot(ag_grpsize, aes(Behavior, TotalFrequency, color=Trt, fill=Trt))+
+  stat_summary(mapping=aes(Behavior, TotalFrequency, fill=Trt), geom="col", fun="mean", color="black", position=position_dodge2(width=0.90))+
+  stat_summary(mapping=aes(Behavior, TotalFrequency, group=Trt), geom="errorbar", fun.data="mean_se", color="black", size=0.5, position=position_dodge2(width=0.90))+
+  scale_y_continuous(expand=c(0,0))+
+  scale_color_manual(values=c("#4DBBD5FF", "#00A087FF"))+
+  scale_fill_manual(values=c("#4DBBD5FF", "#00A087FF"))+
+   ylab("Total freq. per animal \nduring dom observation") + xlab("")+
+  labs(fill="Housing \nCondition")+
+  theme_cowplot()+
+  theme(legend.position = "right")
+
+grpmales <- ggplot(males, aes(Behavior, prop_cage, color=Trt, fill=Trt))+
+  stat_summary(mapping=aes(Behavior, prop_cage, fill=Trt), geom="col", fun="mean", color="black", position=position_dodge2(width=0.90))+
+  stat_summary(mapping=aes(Behavior, prop_cage, group=Trt), geom="errorbar", fun.data="mean_se", color="black", size=0.5, position=position_dodge2(width=0.90))+
+  scale_y_continuous(expand=c(0,0), limits=c(0,1))+
+  scale_color_manual(values=c("#4DBBD5FF", "#00A087FF"))+
+  scale_fill_manual(values=c("#4DBBD5FF", "#00A087FF"))+
+  ylab("Percent of time observed \nduring dark cycle") + xlab("")+
+  theme_cowplot()+
+  theme(legend.position = "right")
+
+grpdiff <- plot_grid(
+  indmales+guides(x=guide_axis(angle=45)), grpmales+guides(x=guide_axis(angle=45)),
+  labels="AUTO", label_y=c(1,1.1), ncol=1, align="v"
+)
+
+grpdiff
+```
+```{r}
+ggsave("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Figures/Fig4_grpsizediff.png", grpdiff, units="in", width = 6.5, height = 6.5, device='png', dpi=300)
+```
+
+
+#Age graphs (YFP vs AFP + Ages in general)
+```{r}
+indage <- ggplot(ag_age, aes(Behavior, TotalFrequency, color=Trt, fill=Trt))+
+  stat_summary(mapping=aes(Behavior, TotalFrequency, fill=Trt), geom="col", fun="mean", color="black", position=position_dodge2(width=0.90))+
+  stat_summary(mapping=aes(Behavior, TotalFrequency, group=Trt), geom="errorbar", fun.data="mean_se", color="black", size=0.5, position=position_dodge2(width=0.90))+
+  scale_y_continuous(expand=c(0,0))+
+  scale_color_manual(values=c("#3C5488FF", "#E64B35FF"))+
+  scale_fill_manual(values=c("#3C5488FF", "#E64B35FF"))+
+  ylab("Total freq. per animal \nduring dom observation") + xlab("")+
+  labs(fill="Housing \nCondition")+
+  theme_cowplot()+
+  theme(legend.position = "right")
+
+age_plot <- ggplot(females)+
+  stat_summary(mapping=aes(Behavior, prop_cage, fill=Trt), geom="col", fun="mean", color="black", position=position_dodge2(width=0.90))+
+  stat_summary(mapping=aes(Behavior, prop_cage, group=Trt), geom="errorbar", fun.data="mean_se", color="black", size=0.5, position=position_dodge2(width=0.90))+
+  scale_y_continuous(limits = c(0,1), expand=c(0,0))+
+  scale_color_manual(values=c("#3C5488FF", "#E64B35FF"))+
+  scale_fill_manual(values=c("#3C5488FF", "#E64B35FF"))+
+  ylab("Percent of time observed \nduring dark cycle") + xlab("")+
+  guides(fill=guide_legend(str_wrap("Housing \nCondition", 5)), color=guide_legend(str_wrap("Age Females", 5)))+theme_cowplot()
+
+agediff <- plot_grid(
+  indage+guides(x=guide_axis(angle=45)), age_plot+guides(x=guide_axis(angle=45)),
+  ncol=1, labels="AUTO", label_y=c(1,1.1), align="v"
+)
+
+agediff
+
+```
+```{r}
+ggsave("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Figures/Fig5_agediff.png", agediff, units="in", width = 6.5, height = 6.5, device='png', dpi=300)
+```
+

@@ -1,0 +1,69 @@
+---
+title: "2. Social dominance and steepness 2"
+author: "Justin Varholick"
+date: '2022-06-15'
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#plots
+library(tidyverse)
+library(ggplot2)
+library(ggbeeswarm)
+library(ggsci)
+library(ggpubr)
+library(ggstance)
+library(cowplot)
+library(readxl)
+library(patchwork)
+```
+
+## Social dominance status data
+```{r}
+ind_rank_wins <- read.csv("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/winsbyanimal.csv")
+ind_rank_wins <- ind_rank_wins[,2:6]
+ind_rank_wins <- rename(ind_rank_wins, "Cage"="Cage.x")
+sex_id <- read_excel("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/AcomysDom_Inventory.xlsx", sheet = "Sheet3")
+sex_id$Cage <- as.factor(sex_id$Cage)
+ind_rank_wins$Cage <- as.factor(ind_rank_wins$Cage)
+ind_rank_wins <- left_join(ind_rank_wins, sex_id, by="Cage")
+
+ind_ds <- read.csv("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/dscorebyanimal_edited.csv")
+ind_ds$Cage <- as.factor(ind_ds$Cage)
+ind_ds <- left_join(ind_ds, ind_rank_wins, by=c("AnimalID"="Opponent.1"))
+ind_ds$dom_status_ds <- as.factor(ind_ds$dom_status_ds)
+
+dc_cage <- read.csv("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/dcbycage_edited.csv")
+cages <- ind_ds %>% 
+  select(Cage.x, DumCage, Sex, GrpSize, Age, Trt) %>% 
+  distinct() %>% 
+  rename(Cage=Cage.x)
+dc_cage$Cage <- as.factor(dc_cage$Cage)
+dc_cage <- left_join(dc_cage, cages, by="Cage")
+
+stp <- read.csv("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/steepbycage_edited.csv")
+stp$Cage <- as.factor(stp$Cage)
+stp <- left_join(stp, ind_ds, by=c("Cage"="Cage.x"))
+stp <- stp %>% 
+  mutate(norm_ds=ds+(GrpSize*(GrpSize-1)/2))
+```
+##Social dominance graphs
+```{r, david scores}
+ind_ds$DumCage <- factor(ind_ds$DumCage, levels=c("L", "K", "J", "I", "H", "G", "F", "E", "D", "C", "B", "A"))
+ds_plot <- ggplot(ind_ds, aes(ds, as.factor(DumCage), color=ds))+
+  geom_text(aes(label=dom_status_ds, fontface="bold"))+
+  scale_x_continuous(limits=c(-3,3), breaks=c(-3,-2,-1,0,1,2,3), expand=c(0,0), position="top")+
+  scale_color_continuous(high="#132B43", low = "#56B1F7")+
+  ylab("") + xlab("David's Score")+
+  labs(color="David's \nScore")+
+  theme_minimal_hgrid() + theme(legend.position="bottom", legend.key.width = unit(2, 'cm'))
+ds_plot
+```
+
+```{r plot}
+
+ggsave("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Figures/Fig1_plot.png", ds_plot, units="in", width = 6, height = 4, device='png', dpi=300)
+
+```
+
+##Analyses were done by hand in reference to Siegel and Castellan 1988, "Nonparametric Statistics for the Behavioral Sciences" pg 130

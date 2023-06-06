@@ -1,0 +1,128 @@
+---
+title: "3. Stability"
+author: "Justin Varholick"
+date: '2022-06-16'
+output: html_document
+---
+
+```{r setup}
+library(tidyverse)
+library(ggalluvial)
+library(ggrepel)
+library(readxl)
+library(ggsci)
+library(cowplot)
+
+library(lme4)
+library(lmerTest)
+```
+
+```{r}
+week_rank <- read.csv("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/dscorebweek_edited.csv")
+week_rank$Cage <- as.factor(week_rank$Cage)
+sex_id <- read_excel("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/AcomysDom_Inventory.xlsx", sheet = "Sheet3")
+sex_id$Cage <- as.factor(sex_id$Cage)
+week_rank <- left_join(week_rank, sex_id, by="Cage")
+week_rank <- rename(week_rank, "Opponent.1"=AnimalID)
+dumcage <- read.csv("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/dscorebyanimal_edited.csv")
+dumcage <- dumcage[,c(1,4)]
+dumcage <- distinct(dumcage)
+dumcage$Cage <- as.factor(dumcage$Cage)
+
+week_rank <- left_join(week_rank, dumcage, by="Cage")
+
+cumm_dom <- read.csv("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/dscorebyanimal_edited.csv")
+cumm_dom <- rename(cumm_dom, "cumm_dom_status"=dom_status_ds)
+cumm_dom <- rename(cumm_dom, "Opponent.1"=AnimalID)
+week_rank <- left_join(week_rank, cumm_dom[,c(2,5)], by="Opponent.1")
+
+week_rank <- week_rank %>%
+  mutate(dom_status_num=case_when(dom_status_ds=="Dominant"~3,
+                                  dom_status_ds=="Subordinate"~1,
+                                  dom_status_ds=="Subdominant"~2,
+                                  dom_status_ds=="Unmeasurable"~0))
+```
+
+```{r, }
+
+week_rank$Trt <- factor(week_rank$Trt, levels=c("YMT", "YMP", "YFP", "AFP"))
+
+week_rank2 <- week_rank %>% 
+  separate(Opponent.1, into=c("CageX", "cageid"), sep="-") %>% 
+  mutate(DumCage2=paste(DumCage,cageid, sep="."))
+
+fig2.1 <- ggplot(week_rank2, aes(Week, ds, group=DumCage2))+
+  geom_line(size=2)+
+  geom_text_repel(data=subset(week_rank2, Week=="Week1"),
+                   aes(label=DumCage2), nudge_x=-1)+
+  facet_wrap(vars(DumCage))+
+  scale_y_continuous(limits=c(-3,3), breaks=c(-3,-2,-1,0,1,2,3), expand=c(0,0))+
+  xlab("") + ylab("David's Score")+
+  labs(color="Stability \nCategory")+
+  scale_color_npg()+
+  theme_cowplot() + panel_border() + theme(legend.position="bottom", axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+fig2.1
+
+```
+```{r}
+DumCage <- c("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L")
+stability <- c("S+IF", "D+F", "S+F", "S+IF", "S+F", "S+F", "D+F", "S+IF", "S+F", "Unm", "Unm", "Unm")
+
+stability_data <- data.frame(DumCage, stability)
+week_rank2$DumCage <- as.factor(week_rank2$DumCage)
+stability_data <- left_join(stability_data, week_rank2, by="DumCage")
+
+stability_data$stability <- factor(stability_data$stability, levels=c("S+F","D+F","S+IF","Unm"))
+```
+```{r}
+fig2.2 <- ggplot(stability_data, aes(Week, ds, group=DumCage2, color=stability))+
+  geom_line(size=2)+
+  geom_text_repel(data=subset(stability_data, Week=="Week1"),
+                   aes(label=DumCage2), nudge_x=-1)+
+  facet_wrap(vars(DumCage), ncol=3)+
+  scale_y_continuous(limits=c(-3,3), breaks=c(-3,-2,-1,0,1,2,3), expand=c(0,0))+
+  xlab("") + ylab("David's Score")+
+  labs(color="Stability \nCategory")+
+  scale_color_npg()+
+  theme_cowplot() + panel_border() + theme(legend.position="right", axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+fig2.2
+```
+
+
+
+```{r, Dominance interaction consistency}
+
+wins_week <- read.csv("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/winsbyweek.csv")
+inventory <- read_excel("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/AcomysDom_Inventory.xlsx", sheet="Sheet1")
+
+wins_week_grp <- wins_week %>% 
+  select(Cage, Week, wins) %>% 
+  mutate(Cage=as.factor(Cage)) %>% 
+  group_by(Cage, Week) %>% 
+  summarise(n_wins=sum(wins)) %>% 
+  arrange(n_wins) %>% 
+  spread(Week, n_wins)
+
+wins_week_grp <- inventory %>% 
+  select(Cage, AgeAtWeek1) %>% 
+  mutate(Cage=as.factor(Cage)) %>% 
+  group_by(Cage) %>% 
+  summarise(mean_age=mean(AgeAtWeek1), sd_age=sd(AgeAtWeek1)) %>%
+  right_join(wins_week_grp) 
+
+wins_week_grp <- stability_data %>% 
+  select(Cage, DumCage, Trt, stability) %>% 
+  distinct() %>% 
+  right_join(wins_week_grp) %>% 
+  select(DumCage, Trt, `1`, `2`, `3`, stability, mean_age, sd_age)
+
+```
+
+```{r plot}
+
+ggsave("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Figures/Fig2_stab_plot.png", fig2.2, units="in", width = 9, height = 6, device='png', dpi=300)
+```
+```{r}
+write.csv(wins_week_grp, "/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/stabilitybycage.csv")
+```
+
