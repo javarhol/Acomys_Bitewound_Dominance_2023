@@ -257,7 +257,9 @@ ggplot(males, aes(Behavior, prop_cage, color=Trt, fill=Trt))+
 ```
 #Test grp size
 ```{r}
-th
+m.groupsize <- glm(prop_cage ~ Behavior + Trt + Behavior*Trt, data=males)
+anova(m.groupsize, test="F")
+summary(m.groupsize)
 ```
 
 ##Age
