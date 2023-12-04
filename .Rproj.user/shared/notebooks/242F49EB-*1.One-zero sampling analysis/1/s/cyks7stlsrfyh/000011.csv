@@ -1,0 +1,7 @@
+"0","data_7 <- data_51 %>% "
+"0","  group_by(Cage, Trt2, Date2, Behavior) %>% "
+"0","  mutate(mean_prop = mean(prop)) %>% "
+"0","  select(Trt2, Date2, Behavior, mean_prop) %>% "
+"0","  unique()"
+"2","Adding missing grouping variables: `Cage`"
+"0","ggplot(data_7, aes(mean_prop)) + geom_histogram() + facet_wrap(~Behavior)"

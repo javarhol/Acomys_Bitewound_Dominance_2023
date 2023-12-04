@@ -1,0 +1,3 @@
+"0","ag3 %>% "
+"0","  filter(Behavior == ""Freeze"") %>% "
+"0","  filter(!TotalFrequency == 0)"

@@ -1,0 +1,5 @@
+"0","stability_data <- data.frame(DumCage, stability)
+"
+"2","Error in data.frame(DumCage, stability) : 
+  arguments imply differing number of rows: 12, 9
+"

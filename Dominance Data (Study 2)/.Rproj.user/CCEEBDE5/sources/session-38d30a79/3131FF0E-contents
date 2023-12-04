@@ -1,0 +1,179 @@
+---
+title: "*2. Focal-animal sampling analysis"
+author: "Justin Varholick"
+date: "2023-09-06"
+output: html_document
+---
+
+```{r setup}
+library(tidyverse)
+library(readxl)
+
+```
+# Extract data from BORIS
+1 Open project file in BORIS
+2 Click the Observations Menu > Export Events > aggregated events
+3 Select the observations you wish to export, then all subjects and all behaviors
+4 Click YES for group events into one file
+5 Save as .csv file
+6 edit in excel 
+  1. split by "_" delimiter into 6 columns
+  2. remove "MVI" from data
+  3. Check all dates are actual dates (remove "2020")
+  4. check all hours are actual hours (replace pt1, and shift 21 and 12 which extend to next column)
+  5. check that all columns have the correct data, delete the coder initials data
+
+```{r data import}
+adata <- read.csv("Data/dominanceevents_MASTER_adj.csv", stringsAsFactors=TRUE)
+
+###Fixing observation.id inconsistencies...
+adata$Cage <- adata$Observation.id
+adata$Subject <- gsub("Mouse ","", as.factor(adata$Subject))
+adata$Date <- gsub("-Jan","01", adata$Date)
+adata$Modifiers <- gsub("None", "3", adata$Modifiers)
+adata$Date <- gsub("3001", "20200130", adata$Date)
+adata$Date <- gsub("2901", "20200129", adata$Date)
+adata$Date <- gsub("2801", "20200128", adata$Date)
+adata$Date <- gsub("2301", "20200123", adata$Date)
+adata$Date <- gsub("2201", "20200122", adata$Date)
+adata$Date <- gsub("2101", "20200121", adata$Date)
+adata$Date <- gsub("730", "20190730", adata$Date)
+adata$Date <- gsub("731", "20190731", adata$Date)
+adata$Date <- gsub("801", "20190801", adata$Date)
+adata$Date <- gsub("806", "20190806", adata$Date)
+adata$Date <- gsub("807", "20190807", adata$Date)
+adata$Date <- gsub("808", "20190808", adata$Date)
+adata$Date <- gsub("815", "20190815", adata$Date)
+adata$Date <- gsub("816", "20190816", adata$Date)
+adata$Date <- gsub("817", "20190817", adata$Date)
+adata$Date <- gsub("2019020190731", "20190731", adata$Date)
+adata$Date <- gsub("2019020190807", "20190807", adata$Date)
+adata$Date <- gsub("916", "20200916", adata$Date)
+adata$Date <- gsub("922", "20200922", adata$Date)
+adata$Date <- gsub("923", "20200923", adata$Date)
+adata$Date <- gsub("2020020200916", "20200916", adata$Date)
+adata$Date <- gsub("2020020200922", "20200922", adata$Date)
+adata$Date <- gsub("2020020200923", "20200923", adata$Date)
+
+###Organize data
+adata$Hour2 <- paste(adata$Hour, "00", sep=":")
+adata$Date <- ymd(adata$Date)
+adata$DateHour <- paste(adata$Date, adata$Hour2, sep=" ")
+adata$DateHour <- as.POSIXct(adata$DateHour, tz="America/New_York")
+adata$DateHour <- ymd_hms(adata$DateHour)
+
+adata$Start..s. <- duration(adata$Start..s., "seconds")
+adata$Stop..s. <- duration(adata$Stop..s., "seconds")
+
+adata$Start <- (adata$DateHour + adata$Start..s.)
+adata$Stop <- (adata$DateHour + adata$Stop..s.)
+
+ag <- adata %>% 
+  within(Opponent.1 <- paste(Cage, Subject, sep="-")) %>% 
+  within(value <- paste("1")) %>% 
+  select(Opponent.1, value, Date, Behavior, Behavioral.category, Modifiers, Cage, Week)
+
+locations <- ag %>% 
+  filter(Behavioral.category=="Location") %>% 
+  filter(Behavior!="Shelter") %>% 
+  filter(Behavior!="Food Hopper") %>% 
+  filter(Behavior!="Cup") %>% 
+  unite("Behavior2", Behavior, Modifiers, sep="-", remove=T) %>% 
+  rename("Behavior"=Behavior2)
+
+ag <- ag %>% 
+  filter(Behavioral.category!="Location") %>% 
+  select(Opponent.1, value, Date, Behavior, Behavioral.category, Cage, Week)
+ag <- rbind(ag, locations)
+
+###add independent variables
+inventory <- read_excel("Data/AcomysDom_Inventory.xlsx", sheet = "Sheet1")
+inventory$Cage <- as.factor(inventory$Cage)
+inventory <- inventory %>% 
+  select(AnimalID, Trt, Sex, AgeAtWeek1) %>% 
+  mutate(Opponent.1=AnimalID)
+ag$Cage <- as.factor(ag$Cage)
+
+ag <- left_join(ag, inventory, by="Opponent.1")
+
+ind_ds <- read.csv("Data/dscorebyanimal_edited.csv")
+ind_ds$Cage <- as.factor(ind_ds$Cage)
+ind_ds <- rename(ind_ds, "Opponent.1"=AnimalID)
+
+ag <- left_join(ag, ind_ds, by=c("Opponent.1", "Cage"))
+ag$value <- as.numeric(ag$value)
+```
+
+```{r zero matrix}
+#data organization
+ag2 <- ag %>% 
+  group_by(Opponent.1, Cage, Trt, AgeAtWeek1, Behavior) %>% 
+  summarise(TotalFrequency=sum(value))
+
+zeromatrix <- ag %>%
+  select(Opponent.1, Cage, Trt, AgeAtWeek1, Behavior) %>% 
+  distinct() %>% 
+  mutate(Chasing=0) %>% 
+  mutate(Mounting=0) %>% 
+  mutate(Attacking=0) %>% 
+  mutate(Stealing=0) %>% 
+  mutate(Fleeing=0) %>% 
+  mutate(Displace=0) %>%
+  mutate(Freeze=0) %>% 
+  mutate(Unseen=0) %>% 
+  mutate(Inactive=0) %>% 
+  mutate(`Top-Left`=0) %>% 
+  mutate(`Top-Right`=0) %>% 
+  mutate(`Bottom-Left`=0) %>% 
+  mutate(`Bottom-Right`=0) %>% 
+  gather("Behavior", "n_prime", 6:18) %>% 
+  distinct()
+
+ag_zeros <- left_join(zeromatrix, ag2, by=(c("Opponent.1", "Cage", "Trt", "AgeAtWeek1", "Behavior")))
+ag_zeros[is.na(ag_zeros)]<-0
+
+ag3 <- ag_zeros %>% 
+  filter(Behavior!="Top-Right") %>% 
+  filter(Behavior!="Top-Left") %>% 
+  filter(Behavior!="Bottom-Right") %>% 
+  filter(Behavior!="Bottom-Left") %>% 
+  filter(Behavior!="Unseen") %>% 
+  filter(Behavior!="Inactive")
+
+ag3$Behavior <- factor(ag3$Behavior, levels=c("Chasing", "Mounting", "Attacking", "Stealing", "Fleeing", "Displace", "Freeze"))
+
+ag3 <- ag3 %>% 
+  mutate(Trt2 = case_when(
+    Trt == "YFP" ~ "Female Pairs",
+    Trt == "YMP" ~ "Male Pairs",
+    Trt == "YMT" ~ "Male Triads",
+    Trt == "AFP" ~ "Aged Females"))
+
+ag3$Trt2 <- factor(ag3$Trt2,
+                     levels = c("Female Pairs", "Male Pairs", "Male Triads", "Aged Females"))
+
+head(ag3)
+```
+
+```{r plot}
+indbhv <- ggplot(ag3, aes(Behavior, TotalFrequency)) +
+   stat_summary(mapping=aes(Behavior, TotalFrequency, fill=Trt2), geom="col", fun="mean", color="black", position=position_dodge2(width=0.90))+
+  stat_summary(mapping=aes(Behavior, TotalFrequency), geom="errorbar", fun.data="mean_se", color="black", size=0.5, position=position_dodge2(width=0.90))+
+  ylab("Total Frequency") +
+  facet_grid(rows = vars(Trt2)) +
+  #scale_fill_npg() +
+  theme_cowplot() +
+  theme(legend.position = "none")
+indbhv
+```
+```{r}
+ggsave("Figures/FocalBehaviorPlot.pdf", indbhv, unit = "mm", height = 180, width = 180, dpi = 300)
+ggsave("Figures/FocalBehaviorPlot.png", indbhv, unit = "mm", height = 180, width = 180, dpi = 300)
+```
+
+```{r}
+ag3 %>% 
+  filter(Behavior == "Freeze") %>% 
+  filter(!TotalFrequency == 0)
+```
+

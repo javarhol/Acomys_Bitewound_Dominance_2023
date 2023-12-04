@@ -1,0 +1,4 @@
+"0","data_master <- read.csv(""~/Data/Ag_Boris_20211109_fromMaster_B1B2B3.csv"")"
+"2","Warning: cannot open file '/Users/justinvarholick/Data/Ag_Boris_20211109_fromMaster_B1B2B3.csv': No such file or directory"
+"2","Error in file(file, ""rt"") : cannot open the connection
+"

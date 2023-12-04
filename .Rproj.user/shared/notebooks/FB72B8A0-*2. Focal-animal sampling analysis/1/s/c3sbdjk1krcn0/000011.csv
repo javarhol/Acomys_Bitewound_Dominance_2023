@@ -1,0 +1,12 @@
+"0","indbhv <- ggplot(ag3, aes(Behavior, TotalFrequency)) +"
+"0","   stat_summary(mapping=aes(Behavior, TotalFrequency, fill=Trt2), geom=""col"", fun=""mean"", color=""black"", position=position_dodge2(width=0.90))+"
+"0","  stat_summary(mapping=aes(Behavior, TotalFrequency), geom=""errorbar"", fun.data=""mean_se"", color=""black"", size=0.5, position=position_dodge2(width=0.90))+"
+"0","  ylab(""Total Frequency"") +"
+"0","  facet_grid(rows = vars(Trt2)) +"
+"0","  scale_fill_npg() +"
+"0","  theme_cowplot() +"
+"0","  theme(legend.position = ""none"")"
+"2","Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+Please use `linewidth` instead."
+"2","Error in scale_fill_npg() : could not find function ""scale_fill_npg""
+"

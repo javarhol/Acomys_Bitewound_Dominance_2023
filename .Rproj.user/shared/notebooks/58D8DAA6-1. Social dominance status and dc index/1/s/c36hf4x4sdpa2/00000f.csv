@@ -1,0 +1,5 @@
+"0","write.csv(dscore_cage, ""/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/dscorebyanimal.csv"")"
+"0","write.csv(dscore_week, ""/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/dscorebweek.csv"")"
+"0","write.csv(wins_rank, ""/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/winsbyanimal.csv"")"
+"0","write.csv(wins_week2, ""/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/winsbyweek.csv"")"
+"0","write.csv(dc_cage, ""/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Data/dcbycage.csv"")"

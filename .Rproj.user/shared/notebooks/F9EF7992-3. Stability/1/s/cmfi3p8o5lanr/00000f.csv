@@ -1,0 +1,7 @@
+"0","wins_week_grp <- stability_data %>% 
+  select(Cage, DumCage, Trt, stability) %>% 
+  distinct() %>% 
+  right_join(wins_week_grp) %>% 
+  select(DumCage, Trt, `1`, `2`, `3`, stability, mean_age, sd_age)
+"
+"2","Joining with `by = join_by(Cage)`"

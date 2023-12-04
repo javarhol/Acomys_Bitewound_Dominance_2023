@@ -1,0 +1,74 @@
+---
+title: "2. Social dominance and steepness 2"
+author: "Justin Varholick"
+date: '2022-06-15'
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+#plots
+library(tidyverse)
+library(ggplot2)
+library(ggbeeswarm)
+library(ggsci)
+library(ggpubr)
+library(ggstance)
+library(cowplot)
+library(readxl)
+library(patchwork)
+```
+
+## Social dominance status data
+```{r}
+ind_rank_wins <- read.csv("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Dominance Data (Study 2)/Data/winsbyanimal.csv")
+ind_rank_wins <- ind_rank_wins[,2:6]
+ind_rank_wins <- rename(ind_rank_wins, "Cage"="Cage.x")
+sex_id <- read_excel("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Dominance Data (Study 2)/Data/AcomysDom_Inventory.xlsx", sheet = "Sheet3")
+sex_id$Cage <- as.factor(sex_id$Cage)
+ind_rank_wins$Cage <- as.factor(ind_rank_wins$Cage)
+ind_rank_wins <- left_join(ind_rank_wins, sex_id, by="Cage")
+
+ind_ds <- read.csv("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Dominance Data (Study 2)/Data/dscorebyanimal_edited.csv")
+ind_ds$Cage <- as.factor(ind_ds$Cage)
+ind_ds <- left_join(ind_ds, ind_rank_wins, by=c("AnimalID"="Opponent.1"))
+ind_ds$dom_status_ds <- as.factor(ind_ds$dom_status_ds)
+
+dc_cage <- read.csv("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Dominance Data (Study 2)/Data/dcbycage_edited.csv")
+cages <- ind_ds %>% 
+  select(Cage.x, DumCage, Sex, GrpSize, Age, Trt) %>% 
+  distinct() %>% 
+  rename(Cage=Cage.x)
+dc_cage$Cage <- as.factor(dc_cage$Cage)
+dc_cage <- left_join(dc_cage, cages, by="Cage")
+```
+##Social dominance graphs
+```{r, david scores}
+ind_ds$DumCage <- factor(ind_ds$DumCage, levels=c("L", "K", "J", "I", "H", "G", "F", "E", "D", "C", "B", "A"))
+ind_ds <- filter(ind_ds, Trt != "YMT")
+ds_plot <- ggplot(ind_ds, aes(ds, as.factor(DumCage)))+
+  geom_text(aes(label=dom_status_ds, fontface="bold"))+
+  #annotate("rect", xmin = -3, xmax = 3, ymin="I", ymax="G", fill = "#009E73", alpha = 0.3) +
+  #annotate("rect", xmin = -3, xmax = 3, ymin="F", ymax="D", fill = "#56b4e9", alpha = 0.3) +
+  #annotate("rect", xmin = -3, xmax = 3, ymin="C", ymax="A", fill = "#e69f00", alpha = 0.3) +
+  scale_x_continuous(position="top")+
+  ylab("") + xlab("David's Score")+
+  theme_minimal_hgrid()
+ds_plot
+```
+
+```{r plot}
+
+ggsave("/Users/justinvarholick/Documents/GitHub/AcomysDominance_2023/Figures/dsscore_plot.png", ds_plot, units="in", width = 6, height = 4, device='png', dpi=300)
+
+```
+
+```{r}
+wins_table <- ind_rank_wins %>% 
+  select(Cage, wins, dom_status, Trt) %>% 
+  gather(key = "dom_status", value = "wins") 
+
+wins_table <- ind_rank_wins[,c(1,2,9,3,5)]
+wins_table <- pivot_wider(wins_table, names_from= "dom_status", values_from= "wins")
+```
+
+

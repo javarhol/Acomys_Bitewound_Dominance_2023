@@ -1,0 +1,6 @@
+"0","Daylist <- split(ag_adj, ag_adj$Date)"
+"0","Cagelist <- split(ag_adj, ag_adj$Cage)"
+"0",""
+"0","ag_adj$CageWeek <- paste(ag_adj$Cage, ag_adj$Week, sep=""-Week"")"
+"0","Weeklist <- split(ag_adj, ag_adj$CageWeek)"
+"0",""

@@ -1,0 +1,5 @@
+"0","  dscore <- as.data.frame(ds(matrix, norm=FALSE, type=""P""))
+"
+"2","Error in as.vector(x, mode) : 
+  cannot coerce type 'closure' to vector of type 'any'
+"

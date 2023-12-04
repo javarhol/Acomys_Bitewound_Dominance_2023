@@ -1,0 +1,15 @@
+"0","#remove triads
+adata2 <- filter(adata, Cage != ""941702"" | ""1058108"" | ""1068572"" )
+"
+"1","[1m[33mError[39m in `filter()`:[22m
+[38;5;232m[36mℹ[38;5;232m In argument: `Cage != ""941702"" | ""1058108"" | ""1068572""`.[39m
+[1mCaused by error in `Cage != ""941702"" | ""1058108""`:[22m
+[33m![39m operations are possible only for numeric, logical or complex types
+Backtrace:
+[90m 1. [39m[1mdplyr[22m::filter(adata, Cage != ""941702"" | ""1058108"" | ""1068572"")
+[90m 2. [39m[1m[94mdplyr:::filter.data.frame([39m[22madata, Cage != ""941702"" | ""1058108"" | ""1068572""[1m[94m)[39m[22m
+[90m 3. [39mdplyr:::filter_rows(.data, dots, by)
+[90m 4. [39mdplyr:::filter_eval(...)
+[90m 6. [39mmask$eval_all_filter(dots, env_filter)
+[90m 7. [39m[1mdplyr[22m (local) eval()
+"

@@ -1,0 +1,2 @@
+"0","ggsave(""Figures/FocalBehaviorPlot.pdf"", indbhv, unit = ""mm"", height = 180, width = 180, dpi = 300)"
+"0","ggsave(""Figures/FocalBehaviorPlot.png"", indbhv, unit = ""mm"", height = 180, width = 180, dpi = 300)"

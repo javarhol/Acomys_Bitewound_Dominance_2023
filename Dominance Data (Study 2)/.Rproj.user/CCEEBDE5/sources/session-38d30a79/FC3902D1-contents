@@ -1,0 +1,30 @@
+#libraries
+library(tidyverse)
+library(cowplot)
+
+
+tunelpoints <- read.csv("~/Library/CloudStorage/GoogleDrive-justinvarholick@gmail.com/My Drive/UF/Heart MI/TUNEL Counting/measurements_120123.csv")
+
+tunelpoints_sum <- tunelpoints %>% 
+  group_by(ID, Species, day) %>% 
+  summarise(sum.points = sum(Num.points))
+
+tunelpoints_sum$day <- as.factor(tunelpoints_sum$day)
+
+ggplot(tunelpoints_sum, aes(day, sum.points, fill = Species)) +
+  geom_boxplot() +
+  geom_point(position = position_dodge(width = 0.75), show.legend = F) +
+  xlab("") + ylab("TUNEL+ counts") +
+  scale_fill_oi() +
+  theme_cowplot()
+
+hist(tunelpoints_sum$sum.points)
+shapiro.test(tunelpoints_sum$sum.points)
+
+wilcox.test(sum.points ~ Species, data = tunelpoints_sum, subset = day == 3)
+wilcox.test(sum.points ~ Species, data = tunelpoints_sum, subset = day == 7)
+wilcox.test(sum.points ~ Species, data = tunelpoints_sum, subset = day == 14)
+
+wilcox.test(sum.points ~ Species, data = tunelpoints_sum)
+
+kruskal.test(sum.points ~ day, data = tunelpoints_sum)

@@ -1,0 +1,2 @@
+"0",""
+"0","dscore_week <- do.call(rbind, lapply(Weeklist, DScore))"
